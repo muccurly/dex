@@ -2,21 +2,29 @@ const { ethers } = require("hardhat");
 const { use, expect } = require("chai");
 const { solidity } = require("ethereum-waffle");
 
+const getBalance = ethers.provider.getBalance;
+
 use(solidity);
 
 describe("My DEX", function () {
-  let myContract;
+  let owner;
+  let dex;
+  let user;
+  let tokenA;
+  let tokenB;
 
-  // quick fix to let gas reporter fetch data from gas station & coinmarketcap
-  before((done) => {
-    setTimeout(done, 2000);
+  beforeEach(async () => {
+    [owner, user] = await ethers.getSigners();
+    const Token = await ethers.getContractFactory("Token");
+    tokenA = await Token.deploy("TokenA", "TKA", 10000);
+    tokenB = await Token.deploy("TokenB", "TKB", 100000);
+    await tokenA.deployed();
+    await tokenB.deployed();
+
+    const Dex = await ethers.getContractFactory("Dex");
+    dex = await Dex.deploy(tokenA.address, tokenB.address);
+    await dex.deployed();
   });
 
-  describe("DexFactory", function () {
-    it("Should deploy DexFactory", async function () {
-      const DexFactoryContract = await ethers.getContractFactory("DexFactory");
 
-      myContract = await DexFactoryContract.deploy();
-    });    
-  });
 });
