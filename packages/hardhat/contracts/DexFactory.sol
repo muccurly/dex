@@ -27,6 +27,7 @@ contract DexFactory {
         allPools.push(exchangeAddress);
         getPools[_tokenA][_tokenB] = exchangeAddress;
         getPools[_tokenB][_tokenA] = exchangeAddress;
+        emit PoolCreated(_tokenA, _tokenB, exchangeAddress);
     }
 }
 
