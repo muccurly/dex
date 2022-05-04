@@ -4,15 +4,10 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "./Math.sol";
+import "./interfaces/IDex.sol";
 import "./interfaces/IDexFactory.sol";
-contract Dex is ERC20 {
+contract Dex is IDex, ERC20 {
     using SafeMath for uint256;
-
-    event Swap(
-        address indexed swaper,
-        uint256 amount1,
-        uint256 amount2
-    );
 
     IDexFactory public factory;
 
@@ -40,7 +35,7 @@ contract Dex is ERC20 {
     function createPool(
         uint256 _amount1,
         uint256 _amount2
-    ) external payable returns (uint256 amountLPTokens) {
+    ) external payable override returns (uint256 amountLPTokens) {
         (uint256 balance1, uint256 balance2) = _getReserves();
         uint256 _totalSupply = totalSupply();
 
@@ -56,7 +51,8 @@ contract Dex is ERC20 {
         _mint(msg.sender, amountLPTokens);
     }
 
-    function withdraw(uint256 _amount) external returns (uint256 token1Amount, uint256 token2Amount) {
+    function withdraw(uint256 _amount)
+     external override returns ( uint256 token1Amount, uint256 token2Amount) {
         require(_amount <= 0, 'Invalid amount');
         (uint256 balance1, uint256 balance2) = _getReserves();
         token1Amount = balance1.mul(_amount).div(totalSupply());
@@ -71,7 +67,7 @@ contract Dex is ERC20 {
     function swap(
         uint256 _amount1In,
         uint256 _amount2In
-    ) external payable lock{
+    ) external payable override lock{
         require(_amount1In == 0 && _amount2In == 0, 'Invalid Amount');
 
         (uint256 reserve1_, uint256 reserve2_ ) = _getReserves();

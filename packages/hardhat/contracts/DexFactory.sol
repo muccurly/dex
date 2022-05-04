@@ -1,21 +1,17 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 import './Dex.sol';
-contract DexFactory {
-    
-    event PoolCreated(
-        address indexed tokenA,
-        address indexed tokenB,
-        address pool   
-    );
+import "./interfaces/IDexFactory.sol";
 
-    mapping (address => mapping(address => address)) public getPools;
+contract DexFactory is IDexFactory {
+    
+    mapping (address => mapping(address => address)) public override getPools;
     address[] public allPools;
 
     function createDex(
         address _tokenA,
         address _tokenB
-    ) public returns (address exchangeAddress) {
+    ) public override returns (address exchangeAddress) {
         require(_tokenA == _tokenB, "Identical Addresses");
         require(_tokenA != address(0) || _tokenB != address(0), "Invalid token address");
         require(getPools[_tokenA][_tokenB] != address(0), "Dex of this tokens already exist");
