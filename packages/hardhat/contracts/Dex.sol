@@ -91,8 +91,7 @@ contract Dex is ERC20 {
             reserve2_
         );
 
-
-        require(_amount1 > reserve1_ || _amount2 > reserve2_, 'Insufficient Liquidity');
+        require(amount1Out > reserve1_ || amount2Out > reserve2_, 'Insufficient Liquidity');
 
         if(amount1Out > 0) _transfer(token1_, _to, amount1Out);
         if(amount2Out > 0) _transfer(token2_, _to, amount2Out);
