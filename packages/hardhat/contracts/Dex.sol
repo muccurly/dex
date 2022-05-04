@@ -74,7 +74,7 @@ contract Dex is ERC20 {
         uint256 _amount2,
         address _to
     ) external payable lock{
-        require(_amount1 == 0 && _amount2 == 0, 'Insufficient Amount');
+        require(_amount1 == 0 && _amount2 == 0, 'Invalid Amount');
 
         (uint256 reserve1_, uint256 reserve2_ ) = _getReserves();
         (address token1_, address token2_) = _getTokenAdresses();
