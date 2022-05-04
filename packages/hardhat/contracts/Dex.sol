@@ -9,8 +9,7 @@ contract Dex is ERC20 {
     using SafeMath for uint256;
 
     event Swap(
-        address indexed sender,
-        address indexed to,
+        address indexed swaper,
         uint256 amount1,
         uint256 amount2
     );
@@ -70,33 +69,35 @@ contract Dex is ERC20 {
 
     
     function swap(
-        uint256 _amount1,
-        uint256 _amount2,
-        address _to
+        uint256 _amount1In,
+        uint256 _amount2In
     ) external payable lock{
-        require(_amount1 == 0 && _amount2 == 0, 'Invalid Amount');
+        require(_amount1In == 0 && _amount2In == 0, 'Invalid Amount');
 
         (uint256 reserve1_, uint256 reserve2_ ) = _getReserves();
-        (address token1_, address token2_) = _getTokenAdresses();
-
         uint256 amount1Out = _getAmount(
-            _amount1,
+            _amount1In,
             reserve1_,
             reserve2_
         );
 
          uint256 amount2Out = _getAmount(
-            _amount2,
+            _amount2In,
             reserve1_,
             reserve2_
         );
 
         require(amount1Out > reserve1_ || amount2Out > reserve2_, 'Insufficient Liquidity');
 
-        if(amount1Out > 0) _transfer(token1_, _to, amount1Out);
-        if(amount2Out > 0) _transfer(token2_, _to, amount2Out);
-
-        emit Swap(msg.sender, _to, _amount1, _amount2);
+        if(amount1Out > 0){
+            token2.transferFrom(msg.sender, address(this), _amount1In);
+            token1.transfer(msg.sender, amount1Out);
+        }
+        if(amount2Out > 0){
+            token1.transferFrom(msg.sender, address(this), _amount2In);
+            token2.transfer(msg.sender, amount2Out);
+        }
+        emit Swap(msg.sender, _amount1In, _amount2In);
     }
 
     function _getAmount(
