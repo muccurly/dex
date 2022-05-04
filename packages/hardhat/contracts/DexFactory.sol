@@ -22,8 +22,8 @@ contract DexFactory {
 
         /// Create 1
         Dex exchange = new Dex(_tokenA, _tokenB);
-
         exchangeAddress = address(exchange);
+
         allPools.push(exchangeAddress);
         getPools[_tokenA][_tokenB] = exchangeAddress;
         getPools[_tokenB][_tokenA] = exchangeAddress;
@@ -35,5 +35,5 @@ contract DexFactory {
         // bytes memory bytecode = type(Dex).creationCode;
         // bytes32 salt = keccak256(abi.encodePacked(_tokenA, _tokenB));
         // assembly {
-        //     pair := create(0, add(bytecode,32), mload(bytecode), salt)
+        //    exchangeAddress := create2(0, add(bytecode, 32), mload(bytecode), salt)
         // }

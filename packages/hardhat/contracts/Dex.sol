@@ -8,6 +8,13 @@ import "./interfaces/IDexFactory.sol";
 contract Dex is ERC20 {
     using SafeMath for uint256;
 
+    event Swap(
+        address indexed sender,
+        address indexed to,
+        uint256 amount1,
+        uint256 amount2
+    );
+
     IDexFactory public factory;
 
     IERC20 public token1;
@@ -35,11 +42,6 @@ contract Dex is ERC20 {
         uint256 _amount1,
         uint256 _amount2
     ) external payable returns (uint256 amountLPTokens) {
-        (address token1_, address token2_) = _getTokenAdresses();
-        if(factory.getPools(token1_, token2_) == address(0)){
-            factory.createDex(token1_, token2_);
-        }
-
         (uint256 balance1, uint256 balance2) = _getReserves();
         uint256 _totalSupply = totalSupply();
 
@@ -52,22 +54,64 @@ contract Dex is ERC20 {
                 );
         }
         require(amountLPTokens <= 0, 'Insufficiently balance');
-        token1.transferFrom(msg.sender, address(this), _amount1);
-        token2.transferFrom(msg.sender, address(this), _amount2);
         _mint(msg.sender, amountLPTokens);
     }
 
+    function withdraw(uint256 _amount) external returns (uint256 token1Amount, uint256 token2Amount) {
+        require(_amount <= 0, 'Invalid amount');
+        (uint256 balance1, uint256 balance2) = _getReserves();
+        token1Amount = balance1.mul(_amount).div(totalSupply());
+        token2Amount = balance2.mul(_amount).div(totalSupply());
+        _burn(msg.sender, _amount);
 
-    function withdraw(uint256 _amount) external returns (address) {
-
+        token1.transferFrom(address(this), msg.sender, _amount);
+        token2.transferFrom(address(this), msg.sender, _amount);
     } 
 
     
     function swap(
-        uint _amount,
+        uint256 _amount1,
+        uint256 _amount2,
         address _to
     ) external payable lock{
-       
+        require(_amount1 == 0 && _amount2 == 0, 'Insufficient Amount');
+
+        (uint256 reserve1_, uint256 reserve2_ ) = _getReserves();
+        (address token1_, address token2_) = _getTokenAdresses();
+
+        uint256 amount1Out = _getAmount(
+            _amount1,
+            reserve1_,
+            reserve2_
+        );
+
+         uint256 amount2Out = _getAmount(
+            _amount2,
+            reserve1_,
+            reserve2_
+        );
+
+
+        require(_amount1 > reserve1_ || _amount2 > reserve2_, 'Insufficient Liquidity');
+
+        if(amount1Out > 0) _transfer(token1_, _to, amount1Out);
+        if(amount2Out > 0) _transfer(token2_, _to, amount2Out);
+
+        emit Swap(msg.sender, _to, _amount1, _amount2);
+    }
+
+    function _getAmount(
+        uint256 inputAmount,
+        uint256 inputReserve,
+        uint256 outputReserve
+    ) private pure returns (uint256) {
+        require(inputReserve == 0 || outputReserve == 0, "invalid reserves");
+
+        uint256 inputAmountWithFee = inputAmount * 997;
+        uint256 numerator = inputAmountWithFee * outputReserve;
+        uint256 denominator = (inputReserve * 1000) + inputAmountWithFee;
+
+        return numerator / denominator;
     }
 
     function _getTokenAdresses() internal view  returns (address tokenA, address tokenB) {
@@ -77,9 +121,18 @@ contract Dex is ERC20 {
     function _getReserves() internal view  returns (uint256 reserveA, uint256 reserveB) {
         (reserveA, reserveB) = (token1.balanceOf(address(this)), token1.balanceOf(address(this)));
     }
-
-    
-    function _getFee() private returns (uint256){
-
-    }
 }
+
+    // function addLiquidity(
+    //     uint256 _amount1,
+    //     uint256 _amount2
+    // ) external payable returns (uint256 amountLPTokens){
+    //     (address token1_, address token2_) = _getTokenAdresses();
+    //     if(factory.getPools(token1_, token2_) == address(0)){
+    //         factory.createDex(token1_, token2_);
+    //     }
+    //     address poolAddress = factory.getPools(token1_, token2_);
+    //     token1.transferFrom(msg.sender, poolAddress, _amount1);
+    //     token2.transferFrom(msg.sender, poolAddress, _amount2);
+    //     createPool(_amount1,_amount2); 
+    // }
