@@ -6,6 +6,8 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "./Math.sol";
 import "./interfaces/IDex.sol";
 import "./interfaces/IDexFactory.sol";
+import "hardhat/console.sol";
+
 contract Dex is IDex, ERC20 {
     using SafeMath for uint256;
 
@@ -26,17 +28,17 @@ contract Dex is IDex, ERC20 {
         address _token1,
         address _token2
     ) ERC20("LP-Token", "LPT") {
-        require(_token1 != address(0) || _token2 != address(0), 'Invalid token address');
+        require(_token1 != address(0) && _token2 != address(0), 'Invalid token address');
         token1 = IERC20(_token1);
         token2 = IERC20(_token2);
-        factory = IDexFactory(msg.sender);
+        factory = IDexFactory(_msgSender());
     }
 
     function createPool(
         uint256 _amount1,
         uint256 _amount2
     ) external payable override returns (uint256 amountLPTokens) {
-        (uint256 balance1, uint256 balance2) = _getReserves();
+        (uint256 balance1, uint256 balance2) = getReserve();
         uint256 _totalSupply = totalSupply();
 
         if(_totalSupply == 0){
@@ -47,20 +49,24 @@ contract Dex is IDex, ERC20 {
                     _amount2.mul(_totalSupply).div(balance2)
                 );
         }
-        require(amountLPTokens <= 0, 'Insufficiently balance');
-        _mint(msg.sender, amountLPTokens);
+        console.log("Contract LP tokens: ",amountLPTokens);
+        require(amountLPTokens > 0, 'Insufficiently balance');
+        assert(token1.transferFrom(_msgSender(), address(this), _amount1));
+        assert(token2.transferFrom(_msgSender(), address(this), _amount2));
+    
+        _mint(_msgSender(), amountLPTokens);
     }
 
     function withdraw(uint256 _amount)
      external override returns ( uint256 token1Amount, uint256 token2Amount) {
-        require(_amount <= 0, 'Invalid amount');
-        (uint256 balance1, uint256 balance2) = _getReserves();
+        require(_amount > 0, 'Invalid amount');
+        (uint256 balance1, uint256 balance2) = getReserve();
         token1Amount = balance1.mul(_amount).div(totalSupply());
         token2Amount = balance2.mul(_amount).div(totalSupply());
-        _burn(msg.sender, _amount);
+        _burn(_msgSender(), _amount);
 
-        token1.transferFrom(address(this), msg.sender, _amount);
-        token2.transferFrom(address(this), msg.sender, _amount);
+        assert(token1.transfer(_msgSender(), token1Amount));
+        assert(token2.transfer(_msgSender(), token2Amount));
     } 
 
     
@@ -68,32 +74,36 @@ contract Dex is IDex, ERC20 {
         uint256 _amount1In,
         uint256 _amount2In
     ) external payable override lock{
-        require(_amount1In == 0 && _amount2In == 0, 'Invalid Amount');
+        require(_amount1In == 0 || _amount2In == 0, 'Invalid Amount');
 
-        (uint256 reserve1_, uint256 reserve2_ ) = _getReserves();
-        uint256 amount1Out = _getAmount(
+        (uint256 reserve1_, uint256 reserve2_ ) = getReserve();
+
+        uint256 amount2Out = _getAmount(
             _amount1In,
             reserve1_,
             reserve2_
         );
 
-         uint256 amount2Out = _getAmount(
+         uint256 amount1Out = _getAmount(
             _amount2In,
-            reserve1_,
-            reserve2_
+            reserve2_,
+            reserve1_
         );
 
-        require(amount1Out > reserve1_ || amount2Out > reserve2_, 'Insufficient Liquidity');
+        require(amount1Out < reserve1_ && amount2Out < reserve2_, 'Insufficient Liquidity');
 
         if(amount1Out > 0){
-            token2.transferFrom(msg.sender, address(this), _amount1In);
-            token1.transfer(msg.sender, amount1Out);
-        }
+            console.log("(Swap)1 amountOut : ", amount1Out);
+            assert(token1.transferFrom(_msgSender(), address(this), amount1Out));
+            assert(token2.transfer(_msgSender(), _amount2In));
+           }
         if(amount2Out > 0){
-            token1.transferFrom(msg.sender, address(this), _amount2In);
-            token2.transfer(msg.sender, amount2Out);
-        }
-        emit Swap(msg.sender, _amount1In, _amount2In);
+            console.log("(Swap)2 amountOut : ", amount2Out);
+            
+            assert(token2.transfer(_msgSender(), amount2Out));
+            assert(token1.transferFrom(_msgSender(), address(this), _amount1In));
+         }
+        emit Swap(_msgSender(), _amount1In, _amount2In);
     }
 
     function _getAmount(
@@ -101,7 +111,7 @@ contract Dex is IDex, ERC20 {
         uint256 inputReserve,
         uint256 outputReserve
     ) private pure returns (uint256) {
-        require(inputReserve == 0 || outputReserve == 0, "invalid reserves");
+        require(inputReserve != 0 && outputReserve != 0, "invalid reserves");
 
         uint256 inputAmountWithFee = inputAmount * 997;
         uint256 numerator = inputAmountWithFee * outputReserve;
@@ -114,8 +124,8 @@ contract Dex is IDex, ERC20 {
         (tokenA, tokenB) = (address(token1), address(token2));
     }
 
-    function _getReserves() internal view  returns (uint256 reserveA, uint256 reserveB) {
-        (reserveA, reserveB) = (token1.balanceOf(address(this)), token1.balanceOf(address(this)));
+    function getReserve() public view  returns (uint256 reserveA, uint256 reserveB) {
+        (reserveA, reserveB) = (token1.balanceOf(address(this)), token2.balanceOf(address(this)));
     }
 }
 

@@ -2,6 +2,8 @@
 pragma solidity ^0.8.0;
 import './Dex.sol';
 import "./interfaces/IDexFactory.sol";
+import "hardhat/console.sol";
+
 
 contract DexFactory is IDexFactory {
     
@@ -12,9 +14,11 @@ contract DexFactory is IDexFactory {
         address _tokenA,
         address _tokenB
     ) public override returns (address exchangeAddress) {
-        require(_tokenA == _tokenB, "Identical Addresses");
-        require(_tokenA != address(0) || _tokenB != address(0), "Invalid token address");
-        require(getPools[_tokenA][_tokenB] != address(0), "Dex of this tokens already exist");
+        console.log('CtokenA: ', _tokenA);
+        console.log('CtokenB: ', _tokenB);
+        require(_tokenA != _tokenB, "Identical Addresses");
+        require(_tokenA != address(0) && _tokenB != address(0), "Invalid token address");
+        require(getPools[_tokenA][_tokenB] == address(0), "tokens already exist");
 
         /// Create 1
         Dex exchange = new Dex(_tokenA, _tokenB);
