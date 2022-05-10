@@ -128,44 +128,44 @@ describe("My DEX", function () {
     });
   });
 
-  describe("Swap", async () => {
-    beforeEach(async ()=>{
-      await tokenA.approve(dex.address, 100);
-      await tokenB.approve(dex.address, 1000);
-      await dex.createPool(100, 1000, { value: 100 });
-      expect(await dex.totalSupply()).to.equal(316);
-    });
+  // describe("Swap", async () => {
+  //   beforeEach(async ()=>{
+  //     await tokenA.approve(dex.address, 100);
+  //     await tokenB.approve(dex.address, 1000);
+  //     await dex.createPool(100, 1000, { value: 100 });
+  //     expect(await dex.totalSupply()).to.equal(316);
+  //   });
 
-    it("swap tokenA to tokenB",async () => {
-      const userBalanceATokenBefore = await tokenA.balanceOf(owner.address);
-      const userBalanceBTokenBefore = await tokenB.balanceOf(owner.address);
+  //   it("swap tokenA to tokenB",async () => {
+  //     const userBalanceATokenBefore = await tokenA.balanceOf(owner.address);
+  //     const userBalanceBTokenBefore = await tokenB.balanceOf(owner.address);
       
-      tokenA.approve(dex.address, 1);
-      /// tokenA 1 -> 10 tokenB
-      await dex.swap(1);
+  //     tokenA.approve(dex.address, 1);
+  //     /// tokenA 1 -> 10 tokenB
+  //     await dex.swap(1);
 
-      const userBalanceATokenAfter = await tokenA.balanceOf(owner.address);
-      const userBalanceBTokenAfter = await tokenB.balanceOf(owner.address);
+  //     const userBalanceATokenAfter = await tokenA.balanceOf(owner.address);
+  //     const userBalanceBTokenAfter = await tokenB.balanceOf(owner.address);
    
-      expect(userBalanceBTokenAfter.sub(userBalanceBTokenBefore)).to.equal(9);
-      expect(userBalanceATokenAfter.sub(userBalanceATokenBefore)).to.equal(-1);
+  //     expect(userBalanceBTokenAfter.sub(userBalanceBTokenBefore)).to.equal(9);
+  //     expect(userBalanceATokenAfter.sub(userBalanceATokenBefore)).to.equal(-1);
        
-    });
+  //   });
 
-    it("swap tokenB to tokenA",async () => {
-      const userBalanceATokenBefore = await tokenA.balanceOf(owner.address);
-      const userBalanceBTokenBefore = await tokenB.balanceOf(owner.address);
+  //   it("swap tokenB to tokenA",async () => {
+  //     const userBalanceATokenBefore = await tokenA.balanceOf(owner.address);
+  //     const userBalanceBTokenBefore = await tokenB.balanceOf(owner.address);
       
-      tokenA.approve(dex.address, 1);
-      /// tokenB 11 -> 1 tokenB
-      await dex.swap(0, 11);
+  //     tokenA.approve(dex.address, 1);
+  //     /// tokenB 11 -> 1 tokenB
+  //     await dex.swap(0, 11);
 
-      const userBalanceATokenAfter = await tokenA.balanceOf(owner.address);
-      const userBalanceBTokenAfter = await tokenB.balanceOf(owner.address);
+  //     const userBalanceATokenAfter = await tokenA.balanceOf(owner.address);
+  //     const userBalanceBTokenAfter = await tokenB.balanceOf(owner.address);
    
-      expect(userBalanceATokenAfter.sub(userBalanceATokenBefore)).to.equal(1);
-      expect(userBalanceBTokenAfter.sub(userBalanceBTokenBefore)).to.equal(-11);
+  //     expect(userBalanceATokenAfter.sub(userBalanceATokenBefore)).to.equal(1);
+  //     expect(userBalanceBTokenAfter.sub(userBalanceBTokenBefore)).to.equal(-11);
        
-    });
-  });
+  //   });
+  // });
 });
