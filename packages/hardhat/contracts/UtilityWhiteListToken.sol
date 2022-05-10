@@ -35,7 +35,7 @@ contract UtilityWhiteListToken is AccessControl, ERC20 {
         address to,
         uint256 amount
     ) internal virtual override {
-        require(hasRole(WHITELIST_ROLE, to), 'Does not exist receiver address');
+        require(hasRole(WHITELIST_ROLE, to) && hasRole(WHITELIST_ROLE, from), 'Does not exist address');
         super._beforeTokenTransfer(from, to, amount);
     }
 }
