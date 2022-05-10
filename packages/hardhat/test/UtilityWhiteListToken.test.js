@@ -12,16 +12,17 @@ describe("WhiteList Token", () => {
     beforeEach(async () => {
         [owner, addr1, addr2, addr3, addr4] = await ethers.getSigners();
         UtilityWhiteListToken = await ethers.getContractFactory("UtilityWhiteListToken");
-        whiteListToken = await UtilityWhiteListToken.deploy("Test-Token", "TT", 1000, [owner.address, addr1.address, addr2.address]);
+        whiteListToken = await UtilityWhiteListToken.connect(owner).deploy("Test-Token", "TT", 1000, [owner.address, addr1.address, addr2.address]);
         await whiteListToken.deployed();
     });
     it("Transfer to WhiteList address", async () => {
+        await whiteListToken.addToWhiteList(owner.address);
         await whiteListToken.transfer(addr1.address, 50);
         expect(await whiteListToken.balanceOf(addr1.address)).to.equal(50);
     });
 
     it("Does not exist address", async () => {
-        await expect(whiteListToken.transfer(addr3.address, 50)).to.be.revertedWith("Does not exist address");
+        await expect(whiteListToken.transfer(addr3.address, 50)).to.be.revertedWith("UtilityWhiteListToken: Does not exist address");
         expect(await whiteListToken.balanceOf(addr3.address)).to.equal(0);
     });
 
@@ -38,6 +39,6 @@ describe("WhiteList Token", () => {
         expect(await whiteListToken.balanceOf(addr4.address)).to.equal(50);
 
         await whiteListToken.removeFromWhiteList(addr4.address);
-        await expect(whiteListToken.transfer(addr4.address, 50)).to.be.revertedWith("Does not exist receiver address");
+        await expect(whiteListToken.transfer(addr4.address, 50)).to.be.revertedWith("UtilityWhiteListToken: Does not exist address");
     });
 })
