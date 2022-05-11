@@ -27,6 +27,14 @@ contract UtilityWhiteListToken is AccessControl, ERC20 {
         grantRole(WHITELIST_ROLE, account);
     }
 
+    function mint(address to, uint amount) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        _mint(to, amount);
+    }
+
+    function burn(address from, uint amount) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        _burn(from, amount);
+    }
+
     function removeFromWhiteList(address account) external {
         revokeRole(WHITELIST_ROLE, account);
     }
@@ -35,7 +43,7 @@ contract UtilityWhiteListToken is AccessControl, ERC20 {
         address to,
         uint256 amount
     ) internal virtual override {
-        require(hasRole(WHITELIST_ROLE, to) && hasRole(WHITELIST_ROLE, from), 'Does not exist address');
+        require(hasRole(WHITELIST_ROLE, to), 'UtilityWhiteListToken: Does not exist address');
         super._beforeTokenTransfer(from, to, amount);
     }
 }

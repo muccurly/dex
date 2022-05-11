@@ -15,19 +15,11 @@ require("@nomiclabs/hardhat-etherscan");
 
 const { isAddress, getAddress, formatUnits, parseUnits } = utils;
 
-/*
-      📡 This is where you configure your deploy configuration for 🏗 scaffold-eth
-
-      check out `packages/scripts/deploy.js` to customize your deployment
-
-      out of the box it will auto deploy anything in the `contracts` folder and named *.sol
-      plus it will use *.args for constructor args
-*/
 
 //
 // Select the network you want to deploy to here:
 //
-const defaultNetwork = "localhost";
+const defaultNetwork = "polygon";
 
 const mainnetGwei = 21;
 
@@ -83,9 +75,7 @@ module.exports = {
     kovan: {
       url: "https://kovan.infura.io/v3/460f40a260564ac4a4f4b3fffb032dad", // <---- YOUR INFURA ID! (or it won't work)
       //    url: "https://speedy-nodes-nyc.moralis.io/XXXXXXXXXXXXXXXXXXXXXXX/eth/kovan", // <---- YOUR MORALIS ID! (not limited to infura)
-      accounts: {
-        mnemonic: mnemonic(),
-      },
+      accounts: [`${process.env.KOVAN_DEPLOYER_PRIV_KEY}`],
     },
     mainnet: {
       url: "https://mainnet.infura.io/v3/460f40a260564ac4a4f4b3fffb032dad", // <---- YOUR INFURA ID! (or it won't work)
@@ -131,17 +121,15 @@ module.exports = {
       },
     },
     polygon: {
-      url: "https://polygon-rpc.com",
+      url: "https://polygon-mainnet.g.alchemy.com/v2/3EdUIIYgKuUEY2Kh6k7u4b6nRJ7Yufa_",
       // url: "https://speedy-nodes-nyc.moralis.io/XXXXXXXXXXXXXXXXXXXx/polygon/mainnet", // <---- YOUR MORALIS ID! (not limited to infura)
-      gasPrice: 3200000000,
-      accounts: {
-        mnemonic: mnemonic(),
-      },
+      gasPrice: 200000000000,
+      accounts: [`${process.env.MAINNET_DEPLOYER_PRIV_KEY}`],
     },
     mumbai: {
       url: "https://rpc-mumbai.maticvigil.com",
       // url: "https://speedy-nodes-nyc.moralis.io/XXXXXXXXXXXXXXXXXXXXXXX/polygon/mumbai", // <---- YOUR MORALIS ID! (not limited to infura)
-      gasPrice: 3200000000,
+      gasPrice: 6500000000,
       accounts: {
         mnemonic: mnemonic(),
       },
