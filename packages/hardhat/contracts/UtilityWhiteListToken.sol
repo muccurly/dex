@@ -6,26 +6,32 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "./interfaces/IWhitelist.sol";
 import "hardhat/console.sol";
 
-contract UtilityWhiteListToken is AccessControl, ERC20 {
+contract UtilityWhiteListToken is ERC20 {
         IWhitelist whitelistRouter;
+        address owner;
+
+        modifier onlyOwner() {
+            require(owner == _msgSender(), "Whitelist: NOT_OWNER");
+            _; 
+        }
         constructor(
         string memory name,
         string memory symbol,
         uint256 initialValue,
         address whitelist     
         )  ERC20(name, symbol){
-        _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
+        owner = _msgSender();
         whitelistRouter = IWhitelist(whitelist);
 
         _mint(_msgSender(), initialValue);
     }
 
 
-    function mint(address to, uint amount) external onlyRole(DEFAULT_ADMIN_ROLE) {
+    function mint(address to, uint amount) external onlyOwner() {
         _mint(to, amount);
     }
 
-    function burn(address from, uint amount) external onlyRole(DEFAULT_ADMIN_ROLE) {
+    function burn(address from, uint amount) external onlyOwner() {
         _burn(from, amount);
     }
 
