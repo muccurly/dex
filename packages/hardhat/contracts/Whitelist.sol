@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.7;
+pragma solidity ^0.8.0;
 
 import './interfaces/IWhitelist.sol';
 import "@openzeppelin/contracts/utils/Context.sol";
-
+import "hardhat/console.sol";
 
 contract Whitelist is IWhitelist, Context {
     address public owner;
@@ -110,7 +110,6 @@ contract Whitelist is IWhitelist, Context {
         validateToken(token_)
         returns (bool)
     {
-        require(target_ != address(0), "Whitelist: INVALID_ADDRESS");
 
         if(isRegistered[token_]){
             return _isWhitelisted[token_][target_];

@@ -7,7 +7,7 @@ import "./interfaces/IWhitelist.sol";
 import "hardhat/console.sol";
 
 contract UtilityWhiteListToken is ERC20 {
-        IWhitelist whitelistRouter;
+        IWhitelist public whitelistRouter;
         address owner;
 
         modifier onlyOwner() {
@@ -17,13 +17,10 @@ contract UtilityWhiteListToken is ERC20 {
         constructor(
         string memory name,
         string memory symbol,
-        uint256 initialValue,
         address whitelist     
         )  ERC20(name, symbol){
         owner = _msgSender();
         whitelistRouter = IWhitelist(whitelist);
-
-        _mint(_msgSender(), initialValue);
     }
 
 
@@ -40,7 +37,9 @@ contract UtilityWhiteListToken is ERC20 {
         address to,
         uint256 amount
     ) internal virtual override {
-        require(whitelistRouter.isWhitelisted(address(this), to), 'UtilityWhiteListToken: Does not exist address');
+        if(from != address(0) && to != address(0)){
+            require(whitelistRouter.isWhitelisted(address(this), to), 'UtilityWhiteListToken: Does not exist address');
+        }
         super._beforeTokenTransfer(from, to, amount);
     }
 }

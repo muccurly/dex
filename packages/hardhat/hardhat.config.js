@@ -19,7 +19,7 @@ const { isAddress, getAddress, formatUnits, parseUnits } = utils;
 //
 // Select the network you want to deploy to here:
 //
-const defaultNetwork = "polygon";
+const defaultNetwork = "localhost";
 
 const mainnetGwei = 21;
 
@@ -75,7 +75,9 @@ module.exports = {
     kovan: {
       url: "https://kovan.infura.io/v3/460f40a260564ac4a4f4b3fffb032dad", // <---- YOUR INFURA ID! (or it won't work)
       //    url: "https://speedy-nodes-nyc.moralis.io/XXXXXXXXXXXXXXXXXXXXXXX/eth/kovan", // <---- YOUR MORALIS ID! (not limited to infura)
-      accounts: [`${process.env.KOVAN_DEPLOYER_PRIV_KEY}`],
+      accounts: {
+        mnemonic: mnemonic(),
+      },
     },
     mainnet: {
       url: "https://mainnet.infura.io/v3/460f40a260564ac4a4f4b3fffb032dad", // <---- YOUR INFURA ID! (or it won't work)
@@ -124,7 +126,9 @@ module.exports = {
       url: "https://polygon-mainnet.g.alchemy.com/v2/3EdUIIYgKuUEY2Kh6k7u4b6nRJ7Yufa_",
       // url: "https://speedy-nodes-nyc.moralis.io/XXXXXXXXXXXXXXXXXXXx/polygon/mainnet", // <---- YOUR MORALIS ID! (not limited to infura)
       gasPrice: 200000000000,
-      accounts: [`${process.env.MAINNET_DEPLOYER_PRIV_KEY}`],
+      accounts: {
+        mnemonic: mnemonic(),
+      },
     },
     mumbai: {
       url: "https://rpc-mumbai.maticvigil.com",
@@ -250,7 +254,7 @@ module.exports = {
   solidity: {
     compilers: [
       {
-        version: "0.8.4",
+        version: "0.8.0",
         settings: {
           optimizer: {
             enabled: true,

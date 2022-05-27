@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.7;
+pragma solidity ^0.8.0;
 interface IWhitelist {
  function whitelist(address token_, address target_) external;
  function dewhitelist(address token_, address target_) external;

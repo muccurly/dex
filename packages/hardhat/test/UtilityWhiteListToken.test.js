@@ -4,55 +4,54 @@ const { solidity } = require("ethereum-waffle");
 
 use(solidity);
 
-describe("WhiteList Token", async () => {
-    let UtilityWhiteListToken;
-    let whiteListToken;
-    const initialValue = ethers.utils.parseEther('1000')
-    const mintValue = ethers.utils.parseEther('10')
-    const [owner, addr1, addr2, addr3, addr4, addr5] = await ethers.getSigners();
+describe("UtilityWhiteListToken", () => {
+    let whiteListToken, whitelist;
+    let admin, operator, user1, user2, addr4, addr5;
 
     beforeEach(async () => {
-        UtilityWhiteListToken = await ethers.getContractFactory("UtilityWhiteListToken");
-        whiteListToken = await UtilityWhiteListToken.connect(owner).deploy("Test-Token", "TT", initialValue, [owner.address, addr1.address, addr2.address]);
+        [admin, operator, user1, user2, addr4, addr5] = await ethers.getSigners();
+
+        const WhiteListContract = await ethers.getContractFactory("Whitelist");
+        whitelist = await WhiteListContract.deploy(admin.address, [operator.address]);
+        await whitelist.deployed();
+
+        const UtilityWhiteListToken = await ethers.getContractFactory("UtilityWhiteListToken");
+        whiteListToken = await UtilityWhiteListToken.connect(admin).deploy("Test-Token", "TT", whitelist.address);
         await whiteListToken.deployed();
-    });
-    it("Transfer to WhiteList address", async () => {
-        await whiteListToken.addToWhiteList(owner.address);
-        await whiteListToken.transfer(addr1.address, 50);
-        expect(await whiteListToken.balanceOf(addr1.address)).to.equal(50);
-    });
 
-    it("Does not exist address", async () => {
-        await expect(whiteListToken.transfer(addr3.address, 50)).to.be.revertedWith("UtilityWhiteListToken: Does not exist address");
-        expect(await whiteListToken.balanceOf(addr3.address)).to.equal(0);
+        await whitelist.connect(admin).addOperator(operator.address);
+
+        await whitelist.connect(operator).addToken(whiteListToken.address);
+        await whitelist.connect(operator).whitelist(whiteListToken.address, operator.address);
+        await whiteListToken.mint(operator.address, 100);
     });
 
-    it("Should add an Address to WhiteList",async () => {
-        await whiteListToken.addToWhiteList(addr4.address);
-        await whiteListToken.transfer(addr4.address, 50);
+    describe("Transfer whitelist", async () => {
 
-        expect(await whiteListToken.balanceOf(addr4.address)).to.equal(50);
-    });
+        it("Transfer to WhiteList address", async () => {
+            expect(await whitelist.isOperator(operator.address)).to.equal(true);
+            await whitelist.connect(operator).whitelist(whiteListToken.address, user1.address);
+            expect(await whitelist.isWhitelisted(whiteListToken.address, user1.address)).to.be.equal(true);
+            await whiteListToken.connect(operator).transfer(user1.address, 50);
+            expect(await whiteListToken.balanceOf(user1.address)).to.equal(50);
+        });
 
-    it("Should remove an Address from WhiteList",async () => {
-        await whiteListToken.addToWhiteList(addr4.address);
-        await whiteListToken.transfer(addr4.address, 50);
-        expect(await whiteListToken.balanceOf(addr4.address)).to.equal(50);
+        it("Does not exist address in Whitelist", async () => {
+            await expect(whiteListToken.connect(operator).transfer(user2.address, 50)).to.be.revertedWith("UtilityWhiteListToken: Does not exist address");
+            expect(await whiteListToken.balanceOf(user2.address)).to.equal(0);
+        });
 
-        await whiteListToken.removeFromWhiteList(addr4.address);
-        await expect(whiteListToken.transfer(addr4.address, 50)).to.be.revertedWith("UtilityWhiteListToken: Does not exist address");
     });
 
     it("mint",async () => {
-        await whiteListToken.addToWhiteList(addr5.address);
-        await whiteListToken.connect(owner).mint(addr5.address, mintValue);
-        console.log(await whiteListToken.balanceOf(addr5.address))
-        expect(await whiteListToken.balanceOf(addr5.address)).to.eq(mintValue);
-        await whiteListToken.connect(addr1).mint(addr2.address, mintValue)
+        await whitelist.connect(operator).addToken(whiteListToken.address);
+        await whitelist.connect(operator).whitelist(whiteListToken.address, addr5.address);
+        await whiteListToken.mint(addr5.address, 100);
+        expect(await whiteListToken.balanceOf(addr5.address)).to.eq(100);
     });
+
     it("burn",async () => {
-        await whiteListToken.addToWhiteList(ethers.constants.AddressZero);
-        await whiteListToken.connect(owner).burn(addr5.address, mintValue);
-        expect(await whiteListToken.balanceOf(addr5.address)).to.eq(0);
+        await whiteListToken.connect(admin).burn(operator.address, 100);
+        expect(await whiteListToken.balanceOf(operator.address)).to.eq(0);
     });
 })
